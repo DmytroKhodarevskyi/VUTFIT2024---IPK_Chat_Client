@@ -35,10 +35,10 @@ public:
 
     } Command;
 
-    bool isContentValid(const std::string& content);
+    bool isValidContent(std::string& content);
     bool isValidDName(const std::string& dname);
     bool isValidSecret(const std::string& secret);
-    bool isValidID(const std::string& id);
+    bool isValidID(std::string id);
 
     Command parseLine(string line);
     bool parseRespondAuth(string respond);

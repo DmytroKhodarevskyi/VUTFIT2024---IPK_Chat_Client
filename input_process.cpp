@@ -10,7 +10,10 @@ vector<string> InputProcess::splitString(const string& str, char delimiter) {
     return tokens;
 }
 
-bool InputProcess::isContentValid(const std::string& content) {
+bool InputProcess::isValidContent(std::string& content) {
+
+    content.erase(std::remove(content.begin(), content.end(), '\n'), content.end());
+    content.erase(std::remove(content.begin(), content.end(), '\r'), content.end());
 
     if (content.empty() || content.length() > 1400) {
         return false; // Message is too long
@@ -53,14 +56,24 @@ bool InputProcess::isValidSecret(const std::string& secret) {
     return true; // All characters are valid
 }
 
-bool InputProcess::isValidID(const std::string& secret) {
+bool InputProcess::isValidID(std::string id) {
+
+    string remove = "discord.";
+
+    size_t pos = id.find(remove);
+
+    // If the substring is found, erase it
+    if (pos != std::string::npos) {
+        id.erase(pos, remove.length());
+    }
+
     // Check the length constraint first
-    if (secret.empty() || secret.size() > 20) {
+    if (id.empty() || id.size() > 20) {
         return false;
     }
     
     // Check each character
-    for (char ch : secret) {
+    for (char ch : id) {
         if (!(std::isalpha(ch) || std::isdigit(ch) || ch == '-')) {
             return false; // Character does not meet criteria
         }
@@ -74,7 +87,9 @@ bool InputProcess::parseRespondAuth(string respond) {
     if (vector[0] == "REPLY") {
         if (vector[1] == "OK") {
             if (vector[2] == "IS") {
-                return true;
+                if (isValidContent(vector[3])) {
+                    return true;
+                }
             }
         }
     }
@@ -87,7 +102,7 @@ bool InputProcess::parseRespondOpen(string respond) {
     if (vector[0] == "REPLY") {
         if (vector[1] == "OK" || vector[1] == "NOK") {
             if (vector[2] == "IS") {
-                if (isContentValid(respond)) {
+                if (isValidContent(vector[3])) {
                     return true;
                 }
             }
@@ -98,7 +113,7 @@ bool InputProcess::parseRespondOpen(string respond) {
         if (vector[1] == "FROM") {
             if (isValidDName(vector[2])) {
                 if (vector[3] == "IS") {
-                    if (isContentValid(respond)) {
+                    if (isValidContent(vector[4])) {
                         return true;
                     }
                 }
