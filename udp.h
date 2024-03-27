@@ -1,27 +1,35 @@
-#ifndef UDP_H
-#define UDP_H
+// #ifndef UDP_H
+// #define UDP_H
 
-#include <unistd.h> // For close
-#include <iostream>
-#include <string.h> // For strlen
-#include <sys/socket.h> // For socket functions
-#include <netinet/in.h> // For sockaddr_in
+// #include <unistd.h> // For close
+// #include <iostream>
+// #include <string.h> // For strlen
+// #include <sys/socket.h> // For socket functions
+// #include <sys/select.h> // For select
+// #include <netinet/in.h> // For sockaddr_in
 
-class Udp {
-    public:   
-        // Tcp(const std::string& serverIP, unsigned short serverPort, int sock);
-        Udp(sockaddr_in server_address, int sock);
-        // void connectToServer();
-        void sendMessage(const std::string& message);
-        void closeConnection();
-        void Input();
+// #include "input_process.h"
 
-    private:
-        struct sockaddr_in server_address;
-        // std::string serverIP;
-        // unsigned short serverPort;
-        int sock;
 
-};
+// class Udp {
+//     public:   
+//         // Tcp(const std::string& serverIP, unsigned short serverPort, int sock);
+//         Udp(sockaddr_in server_address, int sock);
+//         // void connectToServer();
+//         void sendMessage(const std::string& message);
+//         void closeConnection();
+//         void Input();
 
-#endif // UDP_H
+//         void stdinReaderThread(InputBuffer& inputBuffer);
+//         void printBuffer(InputBuffer& inputBuffer);
+//         void networkCommunicationThread(InputBuffer& inputBuffer);
+
+//     private:
+//         struct sockaddr_in server_address;
+//         // std::string serverIP;
+//         // unsigned short serverPort;
+//         int sock;
+
+// };
+
+// #endif // UDP_H

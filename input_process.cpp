@@ -1,4 +1,5 @@
 #include "input_process.h"
+#include <iomanip>
 
 vector<string> InputProcess::splitString(const string& str, char delimiter) {
     vector<string> tokens;
@@ -131,7 +132,7 @@ InputProcess::Command InputProcess::parseLine(string line) {
     //     cout << vector[i] << endl;
     // }
 
-    Command message = { Command::NONE, "NONE", "NONE", "NONE", "NONE", "NONE"};
+    Command message = { Command::NONE, "NONE", "NONE", "NONE", "NONE", "NONE", 0};
 
     if (vector[0] == "/auth") {
 
@@ -240,6 +241,73 @@ string InputProcess::tcp_construct_msg(Command message) {
     return msg;
 }
 
+std::vector<unsigned char> InputProcess::stringToBytes(const std::string& s) {
+    std::vector<unsigned char> bytes(s.begin(), s.end());
+    return bytes;
+}
+
+std::vector<unsigned char> InputProcess::shortToBytes(short number) {
+    std::vector<unsigned char> bytes;
+    bytes.push_back(static_cast<unsigned char>((number >> 8) & 0xFF)); // High byte
+    bytes.push_back(static_cast<unsigned char>(number & 0xFF)); // Low byte
+    return bytes;
+}
+
+vector<unsigned char> InputProcess::udp_construct_auth(Command message, short ID) {
+    vector<unsigned char> messageBytes;
+
+    messageBytes.push_back(0x02); // 0x02
+    vector<unsigned char> idBytes = shortToBytes(ID);
+    messageBytes.insert(messageBytes.end(), idBytes.begin(), idBytes.end());
+    // messageBytes.push_back(0x00); // 0x00
+
+    vector<unsigned char> usernameBytes = stringToBytes(message.username);
+    messageBytes.insert(messageBytes.end(), usernameBytes.begin(), usernameBytes.end());
+    messageBytes.push_back(0x00); // 0x00
+
+    vector<unsigned char> secretBytes = stringToBytes(message.secret);
+    messageBytes.insert(messageBytes.end(), secretBytes.begin(), secretBytes.end());
+    messageBytes.push_back(0x00); // 0x00
+
+    vector<unsigned char> displayNameBytes = stringToBytes(message.displayName);
+    messageBytes.insert(messageBytes.end(), displayNameBytes.begin(), displayNameBytes.end());
+    messageBytes.push_back(0x00); // 0x00
+
+    for(auto byte : messageBytes) {
+        std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+    }
+
+    return messageBytes;
+}
+
+vector<unsigned char> InputProcess::udp_construct_confirm(short ID) {
+    vector<unsigned char> messageBytes;
+
+    messageBytes.push_back(0x00); // 0x00
+    vector<unsigned char> idBytes = shortToBytes(ID);
+    messageBytes.insert(messageBytes.end(), idBytes.begin(), idBytes.end());
+
+    for(auto byte : messageBytes) {
+        std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+    }
+
+    return messageBytes;
+}
+
+vector<unsigned char> InputProcess::udp_construct_bye(short ID) {
+    vector<unsigned char> messageBytes;
+
+    messageBytes.push_back(0xFF); // 0x03
+    vector<unsigned char> idBytes = shortToBytes(ID);
+    messageBytes.insert(messageBytes.end(), idBytes.begin(), idBytes.end());
+
+    // for(auto byte : messageBytes) {
+    //     std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
+    // }
+
+    return messageBytes;
+
+}
 
 void InputBuffer::addLine(const std::string& line) {
         std::lock_guard<std::mutex> guard(mutex);

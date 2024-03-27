@@ -7,6 +7,8 @@
 #include <string>
 #include <vector>
 
+#include <bitset>
+
 #include <thread>
 #include <mutex>
 #include <optional>
@@ -33,6 +35,8 @@ public:
 
     string message;
 
+    short ID;
+
     } Command;
 
     bool isValidContent(std::string& content);
@@ -45,11 +49,30 @@ public:
     bool parseRespondOpen(string respond);
 
     vector<string> splitString(const string& str, char delimiter);
+    string stringToBinary(const std::string& s);
+    string intToBinary(short number);
+
+    vector<unsigned char> stringToBytes(const std::string& s);
+    vector<unsigned char> shortToBytes(short number);
+
+
+
+
 
     string tcp_construct_auth(Command message);
     string tcp_construct_join(Command message);
     string tcp_construct_rename(Command message);
     string tcp_construct_msg(Command message);
+
+    // char udp_construct_msg(Command message);
+    // string udp_construct_join(Command message);
+    // string udp_construct_rename(Command message);
+
+    // string udp_construct_auth(Command message);
+    vector<unsigned char> udp_construct_confirm(short ID);
+    vector<unsigned char> udp_construct_auth(Command message, short ID);
+    vector<unsigned char> udp_construct_bye(short ID);
+
 
 
 
@@ -67,6 +90,11 @@ public:
     // Example method to process and clear the buffer
     // void processAndClear();
     bool isEmpty();
+
+    enum Protocol {
+        TCP,
+        UDP
+    } protocol;
 
     const std::vector<std::string>& getBuffer() const {
         return buffer;

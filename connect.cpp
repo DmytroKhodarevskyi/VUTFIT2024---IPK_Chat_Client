@@ -8,6 +8,7 @@
 
 #include "parse_args.h"
 #include "tcp.h"
+#include "tcp_udp.h"
 
 using namespace std;
 
@@ -53,9 +54,18 @@ int main(int argc, char** argv) {
     string protocol = parse.getProtocol();
     string serverIP = parse.getServerIP();
     unsigned short serverPort = parse.getServerPort();
+    auto udpTimeout = parse.getUdpTimeout();
+    auto udpRetransmissions = parse.getUdpRetransmissions();
 
     // Create a socket
-    int sock = socket(AF_INET, SOCK_STREAM, 0);
+    int sock;
+    if (protocol == "tcp") {
+        sock = socket(AF_INET, SOCK_STREAM, 0);
+    }
+    else if (protocol == "udp") {
+        sock = socket(AF_INET, SOCK_DGRAM, 0);
+    }
+
     if (sock == -1) {
         cerr << "Could not create socket\n";
         return 1;
@@ -75,36 +85,35 @@ int main(int argc, char** argv) {
     server_address.sin_family = AF_INET;
     server_address.sin_port = htons(serverPort); // Server port
 
+
     const char* serverIP_cstr = serverIP.c_str();
     inet_pton(AF_INET, serverIP_cstr, &server_address.sin_addr); // Server IP
+    
+    server_address.sin_addr.s_addr = inet_addr(serverIP.c_str());
 
     if (protocol == "tcp") {
-        // // Connect to the server
-        // if (connect(sock, (struct sockaddr*)&server_address, sizeof(server_address)) == -1) {
-        //     cerr << "Could not connect to server\n";
-        //     close(sock);
-        //     return 2;
-        // }
 
-        // // Send a message to the server
-        // const char* message = "Hello, Server!\n\n";
-        // if (send(sock, message, strlen(message), 0) == -1) {
-        //     cerr << "Could not send message\n";
-        //     close(sock);
-        //     return 3;
-        // }
+        // Tcp tcp = Tcp(server_address, sock);
+        TcpUdp tcp = TcpUdp(server_address, sock, udpTimeout, udpRetransmissions, Status::START);
+        tcp.Input(1);
 
-        Tcp tcp = Tcp(server_address, sock);
-        tcp.Input();
-
-        // cerr << "TCP not implemented yet." << endl;
-        
     }
+
     else if (protocol == "udp") {
-        cerr << "UDP not implemented yet." << endl;
-        close(sock);
-        return 4;
+        // cerr << "UDP not implemented yet." << endl;
+        // close(sock);
+        // return 4;
+        // cerr << "HUH?\n";
+        //FIXME: Handle err
+        if (bind(sock, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) {
+            // Handle error 
+        }
+
+        TcpUdp udp = TcpUdp(server_address, sock, udpTimeout, udpRetransmissions, Status::START);
+        udp.Input(2);
+
     }
+
     else {
         cerr << "Invalid protocol specified." << endl;
         close(sock);
