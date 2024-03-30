@@ -5,6 +5,11 @@
 #include "memory_manager.h"
 #include <mutex>
 
+#include <tuple>
+
+#include <thread>
+#include <chrono>
+
 using namespace std;
 
 class ResponseBuffer {
@@ -17,7 +22,7 @@ public:
     // char* getMessageFromBuffer(const char* searchMessage, size_t length);
     const char* getMessageFromBuffer(const char* searchMessage, size_t length);
     
-    const char* getMessageByIDFromBuffer(char typeID);
+    tuple <const char*, size_t> getMessageByIDFromBuffer(char typeID);
 
     void clearBuffer();
     // Function to remove a message from the buffer
@@ -26,6 +31,8 @@ public:
      bool removeMessageFromBuffer(const char* searchMessage, size_t length);
     
     void printBuffer() const;
+
+    bool isBufferEmpty() const;
 
 
 private:

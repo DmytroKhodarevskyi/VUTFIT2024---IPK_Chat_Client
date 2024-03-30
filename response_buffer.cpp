@@ -43,24 +43,30 @@ const char* ResponseBuffer::getMessageFromBuffer(const char* searchMessage, size
                 return msgData.message;
             }
         }
-        cerr << "Message not found :((((((((((((\n";
+        // cerr << "Message not found :((((((((((((\n";
         return nullptr; // Message not found
     }
 
-const char* ResponseBuffer::getMessageByIDFromBuffer(char typeID) {
+tuple <const char*, size_t> ResponseBuffer::getMessageByIDFromBuffer(char typeID) {
     lock_guard<mutex> lock(bufferMutex); // Lock the buffer
-    for (auto& msgData : messageBuffer) {
-        // Logging for debugging purposes
-        cerr << "msgData.message (type ID): " << static_cast<int>(*msgData.message) << endl;
-        cerr << "searched type ID: " << static_cast<int>(typeID) << endl;
 
-        // Compare only the first byte of the message to the typeID
-        if (*msgData.message == typeID) {
-            return msgData.message;
+    // printBuffer();
+    for (int i = 0; i < 3; i++) {
+        for (auto& msgData : messageBuffer) {
+            // Logging for debugging purposes
+            // cerr << "msgData.message (type ID): " << static_cast<int>(*msgData.message) << endl;
+            // cerr << "searched type ID: " << static_cast<int>(typeID) << endl;
+
+            // Compare only the first byte of the message to the typeID
+            if (*msgData.message == typeID) {
+                return make_tuple(msgData.message, msgData.length);
+            }
         }
+        // std::chrono::milliseconds dura(1000);
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
-    cerr << "Message with specified ID not found :((((((((((((\n";
-    return nullptr; // Message with specified type ID not found
+    // cerr << "Message with specified ID not found :((((((((((((\n";
+    return make_tuple(nullptr, 0); // Message with specified type ID not found
 }
 // bool ResponseBuffer::removeMessageFromBuffer(MemoryManager &memoryManager, const char* searchMessage, size_t length) {
 //     for (auto it = messageBuffer.begin(); it != messageBuffer.end(); ++it) {
@@ -75,18 +81,36 @@ const char* ResponseBuffer::getMessageByIDFromBuffer(char typeID) {
 // }
 
 //   bool ResponseBuffer:: removeMessageFromBuffer(MemoryManager &memoryManager, const char* searchMessage, size_t length) {
-  bool ResponseBuffer:: removeMessageFromBuffer(const char* searchMessage, size_t length) {
-      lock_guard<mutex> lock(bufferMutex); // Lock the buffer
-      for (auto it = messageBuffer.begin(); it != messageBuffer.end(); ++it) {
-          if (it->length == length && std::memcmp(it->message, searchMessage, length) == 0) {
-              // memoryManager.freeSpecific(it->message);
-              free(const_cast<char*>(it->message));
-              messageBuffer.erase(it); // Remove from the buffer
-              return true; // Message was found and removed
-          }
-      }
-      return false; // Message not found
-  }
+// bool ResponseBuffer:: removeMessageFromBuffer(const char* searchMessage, size_t length) {
+//     lock_guard<mutex> lock(bufferMutex); // Lock the buffer
+//     for (auto it = messageBuffer.begin(); it != messageBuffer.end(); ++it) {
+//         if (it->length == length && std::memcmp(it->message, searchMessage, length) == 0) {
+//             // memoryManager.freeSpecific(it->message);
+//             free(const_cast<char*>(it->message));
+//             messageBuffer.erase(it); // Remove from the buffer
+//             return true; // Message was found and removed
+//         }
+//     }
+//     return false; // Message not found
+// }
+
+bool ResponseBuffer::removeMessageFromBuffer(const char* searchMessage, size_t length) {
+    lock_guard<mutex> lock(bufferMutex); // Lock the buffer
+    bool found = false;
+
+    for (auto it = messageBuffer.begin(); it != messageBuffer.end(); /* no increment here */) {
+        if (it->length == length && std::memcmp(it->message, searchMessage, length) == 0) {
+            free(const_cast<char*>(it->message)); // Free the memory
+            it = messageBuffer.erase(it); // Remove from the buffer and get the next iterator
+            found = true; // Mark as found
+        } else {
+            ++it; // Only increment if not erasing
+        }
+    }
+
+    return found; // Return true if at least one message was found and removed
+}
+
 
 void ResponseBuffer::clearBuffer() {
     lock_guard<mutex> lock(bufferMutex); // Lock the buffer for thread safety
@@ -100,7 +124,7 @@ void ResponseBuffer::clearBuffer() {
     // Clear the vector after freeing the memory to avoid dangling pointers
     messageBuffer.clear();
 
-    cout << "Buffer cleared.\n";
+    // cout << "Buffer cleared.\n";
 }
 
 
@@ -117,4 +141,8 @@ void ResponseBuffer::clearBuffer() {
             cerr << std::dec << "\n";
         }
         cerr << "----------------------\n";
+    }
+
+    bool ResponseBuffer::isBufferEmpty() const {
+        return messageBuffer.empty();
     }

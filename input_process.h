@@ -8,6 +8,8 @@
 #include <vector>
 
 #include <bitset>
+#include <atomic>
+
 
 #include <thread>
 #include <mutex>
@@ -69,9 +71,13 @@ public:
     // string udp_construct_rename(Command message);
 
     // string udp_construct_auth(Command message);
-    vector<unsigned char> udp_construct_confirm(short ID);
     vector<unsigned char> udp_construct_auth(Command message, short ID);
+    vector<unsigned char> udp_construct_join(Command message, short ID);
+    vector<unsigned char> udp_construct_msg(Command message, short ID);
+    vector<unsigned char> udp_construct_err(short ID, string DisplayName);
+    vector<unsigned char> udp_construct_confirm(short ID);
     vector<unsigned char> udp_construct_bye(short ID);
+
 
 
 
@@ -81,8 +87,11 @@ public:
 class InputBuffer {
 private:
     std::mutex mutex;
+    std::mutex network_mutex;
     std::vector<std::string> buffer;
-    bool is_network_active;
+    bool is_network_active = false;
+
+    // atomic<bool> is_network;
 
 public:
     void addLine(const std::string& line);
@@ -100,13 +109,9 @@ public:
         return buffer;
     }
 
-    void setNetwork(bool active) {
-        is_network_active = active;
-    }
 
-    bool getNetwork() {
-        return is_network_active;
-    }
+    bool getNetwork();
+    void setNetwork(bool active);
 
 };
 

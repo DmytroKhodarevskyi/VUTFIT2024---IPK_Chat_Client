@@ -9,12 +9,17 @@
 #include <fcntl.h>
 #include <iomanip>
 
+#include <csignal>
+#include <set>
+
+#include <tuple>
+
 #include <memory> // For std::unique_ptr
 
 
 #include <mutex>
 #include <condition_variable>
-
+#include <chrono>
 
 #include "memory_manager.h"
 
@@ -35,7 +40,7 @@ using namespace std;
 class TcpUdp {
     public:   
         // Tcp(const string& serverIP, unsigned short serverPort, int sock);
-        TcpUdp(sockaddr_in server_address, int sock, unsigned short UdpTimeout, unsigned short UdpRetransmissions, enum Status CurrentStatus);
+        TcpUdp(sockaddr_in server_address, int sock, unsigned short UdpTimeout, unsigned short UdpRetransmissions);
         void Input(int Protocol);
 
         void connectToServer();
@@ -43,6 +48,8 @@ class TcpUdp {
         void sendMessageTCP(const string& message);
         void sendMessageUDP(const char* message, size_t length);
         void sendConfirm(short ID);
+        void sendByeUDP(short ID);
+
 
         // void sendMessageUDP(const string& message);
 
@@ -63,17 +70,32 @@ class TcpUdp {
         // void confirmThread();
         // void receiverThread(InputBuffer& inputBuffer, ResponseBuffer& responseBuffer);
         void receiverThread();
+        void signalHandlerThread(const sigset_t& signals);
 
         void printMessageAsHex(const char* message, size_t length);
         void printBuffer(InputBuffer& inputBuffer);
 
+        void setReceived(bool received);
 
+        // static TcpUdp* instance;
+
+        // TcpUdp() {
+        //     instance = this;
+        // }
+
+        // static void signalHandler(int signum);
 
     private:
         mutex sendingMutex;
         mutex bufferMutex;
         mutex confirmMutex;
         condition_variable confirmCondition;
+
+        mutex confirmReceivedMutex;
+
+        // condition_variable networkThread;
+        // mutex networkMutex;
+        // bool networkThreadReady = false;
 
         bool confirmReceived = false;
 
@@ -89,6 +111,7 @@ class TcpUdp {
         unsigned short UdpRetransmissions;
 
         string ERR_ = "ERR: ";
+        
 
         enum Status {
             START,
@@ -98,10 +121,12 @@ class TcpUdp {
             END
         } Status;
 
-        enum Status CurrentStatus;
+        enum Status CurrentStatus = Status::START;
 
         unsigned short SentID = 0;
         unsigned short ReceivedID = 0;
+
+    	string DisplayName = "NONE";
 
 };
 

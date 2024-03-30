@@ -22,7 +22,7 @@ string hostnameToIP(const string& hostname) {
     hints.ai_socktype = SOCK_STREAM;
 
     if ((status = getaddrinfo(hostname.c_str(), nullptr, &hints, &res)) != 0) {
-        cerr << "getaddrinfo: " << gai_strerror(status) << endl;
+        cerr << "ERR: getaddrinfo: " << gai_strerror(status) << endl;
         return "";
     }
 
@@ -73,6 +73,11 @@ int main(int argc, char** argv) {
 
     serverIP = hostnameToIP(serverIP);
 
+    if (serverIP == "") {
+        cerr << "ERR: Could not resolve hostname to IP\n";
+        return 2;
+    }
+
     cerr << "Protocol: " << protocol << endl;
     cerr << "Server IP: " << serverIP << endl;
     cerr << "Server Port: " << serverPort << endl;
@@ -94,7 +99,7 @@ int main(int argc, char** argv) {
     if (protocol == "tcp") {
 
         // Tcp tcp = Tcp(server_address, sock);
-        TcpUdp tcp = TcpUdp(server_address, sock, udpTimeout, udpRetransmissions, Status::START);
+        TcpUdp tcp = TcpUdp(server_address, sock, udpTimeout, udpRetransmissions);
         tcp.Input(1);
 
     }
@@ -109,7 +114,7 @@ int main(int argc, char** argv) {
             // Handle error 
         }
 
-        TcpUdp udp = TcpUdp(server_address, sock, udpTimeout, udpRetransmissions, Status::START);
+        TcpUdp udp = TcpUdp(server_address, sock, udpTimeout, udpRetransmissions);
         udp.Input(2);
 
     }
