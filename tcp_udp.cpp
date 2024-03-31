@@ -478,7 +478,7 @@ void TcpUdp::networkCommunicationThread()
 
 							sendConfirm(msgID);
 
-							const char *start = &serv_msg[3];							// Start from the 3rd byte
+							const char *start = &serv_msg[3];						// Start from the 3rd byte
 							const char *end = std::strchr(start, '\0'); // Find the next zero byte
 
 							if (end == nullptr)
@@ -631,7 +631,6 @@ void TcpUdp::networkCommunicationThread()
 							tie(reply, rep_length) = responseBuffer.getMessageByIDFromBuffer(ReplyID);
 							// tie(error, error_length) = responseBuffer.getMessageByIDFromBuffer(ErrorID);
 
-							
 							if (reply != nullptr)
 							{
 
@@ -667,14 +666,14 @@ void TcpUdp::networkCommunicationThread()
 									{
 										cerr << "ERR: undefined message in reply" << endl;
 										what_to_do = 1; // continue
-										// continue;
+																		// continue;
 									}
 
 									string reply_msg = string(start, end - start);
 
 									cerr << "Success: " << reply_msg << endl;
 
-									const char* msg_from_server = nullptr;
+									const char *msg_from_server = nullptr;
 									size_t msg_length = 0;
 
 									std::this_thread::sleep_for(std::chrono::milliseconds(300));
@@ -690,11 +689,9 @@ void TcpUdp::networkCommunicationThread()
 
 										// cerr << "Message from server: ";
 										// printMessageAsHex(msg_from_server, msg_length);
-										char msg_ID = (static_cast<unsigned char>(msg_from_server[1]) << 8) 
-										| static_cast<unsigned char>(msg_from_server[2]);
+										char msg_ID = (static_cast<unsigned char>(msg_from_server[1]) << 8) | static_cast<unsigned char>(msg_from_server[2]);
 										ReceivedID = msg_ID;
 										sendConfirm(ReceivedID);
-
 
 										const char *start = &msg_from_server[3];		// Start from the 3rd byte
 										const char *end = std::strchr(start, '\0'); // Find the next zero byte
@@ -703,7 +700,7 @@ void TcpUdp::networkCommunicationThread()
 										{
 											cerr << "ERR: Server name is not found" << endl;
 											what_to_do = 1; // continue
-											// continue;
+																			// continue;
 										}
 
 										ServerName = string(start, end - start);
@@ -723,7 +720,7 @@ void TcpUdp::networkCommunicationThread()
 
 										// responseBuffer.printBuffer();
 										what_to_do = 1; // continue
-										// continue;
+																		// continue;
 									}
 
 									what_to_do = 1; // continue
@@ -731,42 +728,43 @@ void TcpUdp::networkCommunicationThread()
 
 									// continue;
 									// cerr << "Server: " + DisplayName + " has joined default\n";
-									}
-									else if (result == 0x00)
-									{
-										// cerr << "ERR FROM " + ServerName + ": " + "Auth is failed, concider retrying" + "\n";
-
-										const char *start = &reply[6];							// Start from the 3rd byte
-										const char *end = std::strchr(start, '\0'); // Find the next zero byte
-
-										if (end == nullptr)
-										{
-											cerr << "ERR: Undefined message in reply" << endl;
-											what_to_do = 1; // continue
-											// continue;
-										}
-
-										string reply_msg = string(start, end - start);
-
-										cerr << "Failure: " << reply_msg << endl;
-
-										CurrentStatus = START;
-										responseBuffer.removeMessageFromBuffer(reply, rep_length);
-										
-										// sendMessageUDP("BYE\r\n");
-										// break;
-										what_to_do = 1; // continue
-										// continue;
-									}
-									else
-									{
-										cerr << "ERR FROM " << ServerName << ": " << "Unknown reply" << endl;
-										CurrentStatus = START;
-										responseBuffer.removeMessageFromBuffer(reply, rep_length);
-										what_to_do = 1; // continue
-										// continue;
-									}
 								}
+								else if (result == 0x00)
+								{
+									// cerr << "ERR FROM " + ServerName + ": " + "Auth is failed, concider retrying" + "\n";
+
+									const char *start = &reply[6];							// Start from the 3rd byte
+									const char *end = std::strchr(start, '\0'); // Find the next zero byte
+
+									if (end == nullptr)
+									{
+										cerr << "ERR: Undefined message in reply" << endl;
+										what_to_do = 1; // continue
+																		// continue;
+									}
+
+									string reply_msg = string(start, end - start);
+
+									cerr << "Failure: " << reply_msg << endl;
+
+									CurrentStatus = START;
+									responseBuffer.removeMessageFromBuffer(reply, rep_length);
+
+									// sendMessageUDP("BYE\r\n");
+									// break;
+									what_to_do = 1; // continue
+																	// continue;
+								}
+								else
+								{
+									cerr << "ERR FROM " << ServerName << ": "
+											 << "Unknown reply" << endl;
+									CurrentStatus = START;
+									responseBuffer.removeMessageFromBuffer(reply, rep_length);
+									what_to_do = 1; // continue
+																	// continue;
+								}
+							}
 
 							// char ErrorID = 0xFE;
 							// const char* error = responseBuffer.getMessageByIDFromBuffer(ErrorID);
@@ -792,7 +790,7 @@ void TcpUdp::networkCommunicationThread()
 									// responseBuffer.removeMessageFromBuffer(error, error_length);
 									// inputBuffer.setNetwork(false);
 									what_to_do = 2; // break
-									// break;
+																	// break;
 								}
 
 								ServerName = string(start, end - start);
@@ -807,20 +805,20 @@ void TcpUdp::networkCommunicationThread()
 								// sendMessageUDP("BYE\r\n");
 								responseBuffer.removeMessageFromBuffer(error, error_length);
 								what_to_do = 2; // break
-								// break;
+																// break;
 							}
 
 							if (what_to_do == 1 || what_to_do == 2)
 								break;
 
 							std::this_thread::sleep_for(std::chrono::milliseconds(UdpTimeout / 10));
-						
+
 							if (chrono::steady_clock::now() - start > timeout)
 							{
 								cerr << "ERR: Timeout of reply reached" << endl;
 								sendByeUDP(SentID);
 								what_to_do = 2; // break
-								// break;
+																// break;
 							}
 						}
 
@@ -908,11 +906,14 @@ void TcpUdp::networkCommunicationThread()
 						while (!(reply != nullptr && msg_from_server != nullptr))
 						{
 							// cerr << "SPINNING" << endl;
-							if (reply == nullptr) {
+							if (reply == nullptr)
+							{
 								tie(reply, reply_length) = responseBuffer.getMessageByIDFromBuffer(ReplyID);
-								if (reply != nullptr)
-									// cerr << "REPLY TIED" << endl;
-							} else {
+								// if (reply != nullptr)
+								// cerr << "REPLY TIED" << endl;
+							}
+							else
+							{
 								if (!reply_found)
 								{
 									rep_result = reply[3];
@@ -936,17 +937,20 @@ void TcpUdp::networkCommunicationThread()
 								}
 							}
 
-							if (msg_from_server == nullptr) {
+							if (msg_from_server == nullptr)
+							{
 								tie(msg_from_server, msg_length) = responseBuffer.getMessageByIDFromBuffer(MsgID);
 								// if (msg_from_server != nullptr)
-									// cerr << "MSG TIED" << endl;
+								// cerr << "MSG TIED" << endl;
 							}
 
-							if (err == nullptr) {
+							if (err == nullptr)
+							{
 								tie(err, err_length) = responseBuffer.getMessageByIDFromBuffer(0xFE);
-							} else {
-								unsigned short msgID = (static_cast<unsigned char>(err[1]) << 8) 
-								| static_cast<unsigned char>(err[2]);
+							}
+							else
+							{
+								unsigned short msgID = (static_cast<unsigned char>(err[1]) << 8) | static_cast<unsigned char>(err[2]);
 								sendConfirm(msgID);
 								// cerr << "ERR FROM " + ServerName + ": " + "Server Error" + "\n";
 								const char *start = &err[3];								// Start from the 3rd byte
@@ -981,9 +985,12 @@ void TcpUdp::networkCommunicationThread()
 								break;
 							}
 
-							if (bye == nullptr) {
+							if (bye == nullptr)
+							{
 								tie(bye, bye_length) = responseBuffer.getMessageByIDFromBuffer(0xFF);
-							} else {
+							}
+							else
+							{
 								unsigned short msgID = (static_cast<unsigned char>(bye[1]) << 8) | static_cast<unsigned char>(bye[2]);
 								sendConfirm(msgID);
 
@@ -1013,8 +1020,7 @@ void TcpUdp::networkCommunicationThread()
 
 						if (rep_result == 0x01 && msg_from_server != nullptr)
 						{
-							msgID = (static_cast<unsigned char>(msg_from_server[1]) << 8)
-							 | static_cast<unsigned char>(msg_from_server[2]);
+							msgID = (static_cast<unsigned char>(msg_from_server[1]) << 8) | static_cast<unsigned char>(msg_from_server[2]);
 							ReceivedID = msgID;
 							sendConfirm(ReceivedID);
 
@@ -1037,7 +1043,7 @@ void TcpUdp::networkCommunicationThread()
 							string msg = string(nextStart, nextEnd - nextStart);
 							// }
 
-							const char *rep_start = &reply[6];		// Start from the 3rd byte
+							const char *rep_start = &reply[6];									// Start from the 3rd byte
 							const char *rep_end = std::strchr(rep_start, '\0'); // Find the next zero byte
 
 							string reply_msg = string(rep_start, rep_end - rep_start);
@@ -1049,7 +1055,6 @@ void TcpUdp::networkCommunicationThread()
 							responseBuffer.removeMessageFromBuffer(msg_from_server, msg_length);
 							responseBuffer.removeMessageFromBuffer(reply, reply_length);
 
-
 							continue;
 							// cerr << "Server: " + DisplayName + " has joined default\n";
 						}
@@ -1058,7 +1063,7 @@ void TcpUdp::networkCommunicationThread()
 							// cerr << "ERR FROM " + ServerName + ": " + "Join is failed, concider retrying" + "\n";
 							// sendMessageUDP("BYE\r\n");
 							// break;
-							const char *rep_start = &reply[6];		// Start from the 3rd byte
+							const char *rep_start = &reply[6];									// Start from the 3rd byte
 							const char *rep_end = std::strchr(rep_start, '\0'); // Find the next zero byte
 
 							string reply_msg = string(rep_start, rep_end - rep_start);
@@ -1071,7 +1076,8 @@ void TcpUdp::networkCommunicationThread()
 						}
 						else
 						{
-							cerr << "ERR FROM " << ServerName << ": " << "Unknown reply" << endl;
+							cerr << "ERR FROM " << ServerName << ": "
+									 << "Unknown reply" << endl;
 							sendByeUDP(SentID);
 							responseBuffer.removeMessageFromBuffer(msg_from_server, msg_length);
 							responseBuffer.removeMessageFromBuffer(reply, reply_length);
@@ -1154,35 +1160,69 @@ void TcpUdp::receiverThread()
 		int bytes = 0;
 		const char *message = receiveMessageUDP(&err, &bytes);
 
-		if (message != nullptr) {
+		if (message != nullptr)
+		{
 			const unsigned char firstByte = message[0];
 			if (firstByte != 0xFF && firstByte != 0xFE && firstByte != 0x00 && firstByte != 0x01 &&
-					firstByte != 0x02 && firstByte != 0x03 && firstByte != 0x04) {
+					firstByte != 0x02 && firstByte != 0x03 && firstByte != 0x04)
+			{
 
-					InputProcess inputProcess;
-					auto messageBytes = inputProcess.udp_construct_err(SentID, DisplayName);
+				InputProcess inputProcess;
+				auto messageBytes = inputProcess.udp_construct_err(SentID, DisplayName);
 
-					const char *sequence = reinterpret_cast<const char *>(messageBytes.data());
-					sendMessageUDP(sequence, messageBytes.size());
+				const char *sequence = reinterpret_cast<const char *>(messageBytes.data());
+				sendMessageUDP(sequence, messageBytes.size());
 
-					cerr << "ERR: Invalid message received, exiting receiver thread" << endl;
+				cerr << "ERR: Invalid message received, exiting receiver thread" << endl;
 
-					unique_lock<mutex> lock(confirmMutex);
-					confirmCondition.wait(lock, [this]
-																{ return confirmReceived; });
-					// confirmReceived = false;
-					setReceived(false);
+				unique_lock<mutex> lock(confirmMutex);
+				confirmCondition.wait(lock, [this]
+															{ return confirmReceived; });
+				// confirmReceived = false;
+				setReceived(false);
 
-					// cerr << "ERR: Invalid message received, exiting receiver thread" << endl;
-					sendByeUDP(SentID);
-					inputBuffer.setNetwork(false);
-					break;
+				// cerr << "ERR: Invalid message received, exiting receiver thread" << endl;
+				sendByeUDP(SentID);
+				inputBuffer.setNetwork(false);
+				break;
 			}
 		}
 
-		// if (responseBuffer.isBufferEmpty())
-		// {
-		// }
+		if (message != nullptr)
+		{
+			const unsigned char firstByte = message[0];
+			if (firstByte == 0x04)
+			{
+				// cerr << "Received BYE message, exiting receiver thread" << endl;
+				short MsgID = message[1] << 8 | message[2];
+				sendConfirm(MsgID);
+
+				const char *start = &message[3];						// Start from the 3rd byte
+				const char *end = std::strchr(start, '\0'); // Find the next zero byte
+
+				if (end == nullptr)
+				{
+					cerr << "ERR: Server name is not found" << endl;
+					sendByeUDP(SentID);
+					// inputBuffer.setNetwork(false);
+					break;
+				}
+
+				string ServerName = string(start, end - start);
+				const char *nextStart = end + 1;
+				const char *nextEnd = std::strchr(nextStart, '\0');
+
+				string reply_msg = string(nextStart, nextEnd - nextStart);
+
+				cout << ServerName << ": " << reply_msg << endl;
+				// break;
+				continue;
+			}
+		}
+
+		if (responseBuffer.isBufferEmpty())
+		{
+		}
 
 		if (err == 2)
 		{
@@ -1245,30 +1285,6 @@ void TcpUdp::setSocketTimeout(int sock, int timeoutMs)
 		// Handle error, maybe return or exit
 	}
 }
-
-// void TcpUdp::signalHandler(int signum)
-// {
-// 	// cerr << "Interrupt signal (" << signum << ") received.\n";
-
-// 	if (signal == SIGINT)
-// 	{
-// 		inputBuffer.setNetwork(false);
-
-// 		if (inputBuffer.protocol == InputBuffer::Protocol::UDP)
-// 		{
-// 			sendByeUDP(SentID);
-// 		}
-// 		else
-// 		{
-// 			sendMessageTCP("BYE\r\n");
-// 		}
-// 	}
-// 	// responseBuffer.clearBuffer();
-
-// 	// cleanup and close up stuff here
-// 	// terminate program
-// 	// exit(signum);
-// }
 
 void TcpUdp::signalHandlerThread(const sigset_t &signals)
 {
