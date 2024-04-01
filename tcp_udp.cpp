@@ -247,10 +247,6 @@ char *TcpUdp::receiveMessageUDP(int *err, int *bytes)
 	return buffer;
 }
 
-void TcpUdp::closeConnection()
-{
-	close(sock);
-}
 
 void TcpUdp::stdinReaderThread()
 {
@@ -1131,7 +1127,7 @@ void TcpUdp::handleErrFromServerUDP() {
 	inputBuffer.setNetwork(false);
 }
 
-void TcpUdp::receiverThread()
+void TcpUdp::receiverThreadUDP()
 {
 	while (inputBuffer.getNetwork() == true)
 	{
@@ -1454,7 +1450,7 @@ void TcpUdp::Input(int Protocol)
 
 		thread inputThread(&TcpUdp::stdinReaderThread, this);
 		thread networkThread(&TcpUdp::networkCommunicationThread, this);
-		thread receiverThread(&TcpUdp::receiverThread, this);
+		thread receiverThread(&TcpUdp::receiverThreadUDP, this);
 
 		signalHandlerThread.join();
 		inputThread.join();
