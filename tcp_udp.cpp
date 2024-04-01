@@ -54,10 +54,10 @@ void TcpUdp::printMessageAsHex(const char *message, size_t length)
 	// std::cerr << "Sending message: ";
 	for (size_t i = 0; i < length; ++i)
 	{
-		std::cerr << std::hex << std::setw(2) << std::setfill('0')
+		cerr << std::hex << std::setw(2) << std::setfill('0')
 							<< static_cast<int>(static_cast<unsigned char>(message[i])) << " ";
 	}
-	std::cerr << std::endl;
+	cerr << endl;
 }
 
 void TcpUdp::confirmThread(short expectedID, const char *message, size_t length)
@@ -199,8 +199,10 @@ string TcpUdp::receiveMessageTCP()
 	if (bytesReceived == 0)
 	{
 		cerr << ERR_ << "Client disconnected " << endl;
-		close(sock);
-		exit(5);
+		// inputBuffer.setNetwork(false);
+		return "";
+		// close(sock);
+		// exit(5);
 	}
 
 	return string(buffer, bytesReceived);
@@ -389,6 +391,25 @@ void TcpUdp::networkCommunicationThread()
 							const char *nextEnd = std::strchr(nextStart, '\0');
 
 							string reply_msg = string(nextStart, nextEnd - nextStart);
+
+							if (!inputProcess.isValidDName(ServerName))
+							{
+								// cerr << "ERR: Invalid server name" << endl;
+								// sendByeUDP(SentID);
+								// responseBuffer.removeMessageFromBuffer(err, err_length);
+								handleErrFromServerUDP();
+								break;
+							}
+
+							if (!inputProcess.isValidContent(reply_msg))
+							{
+								// cerr << "ERR: Invalid message" << endl;
+								// sendByeUDP(SentID);
+								// responseBuffer.removeMessageFromBuffer(err, err_length);
+								handleErrFromServerUDP();
+								break;
+							}
+
 							cerr << "ERR FROM " << ServerName << ": " << reply_msg << endl;
 
 							sendByeUDP(SentID);
@@ -489,6 +510,15 @@ void TcpUdp::networkCommunicationThread()
 
 									string reply_msg = string(start, end - start);
 
+									if (!inputProcess.isValidContent(reply_msg))
+									{
+										// cerr << "ERR: Invalid message" << endl;
+										// sendByeUDP(SentID);
+										handleErrFromServerUDP();
+										what_to_do = 2; // break
+										break;
+									}
+
 									cerr << "Success: " << reply_msg << endl;
 
 									responseBuffer.removeMessageFromBuffer(reply, rep_length);
@@ -503,12 +533,24 @@ void TcpUdp::networkCommunicationThread()
 
 									if (end == nullptr)
 									{
-										cerr << "ERR: Undefined message in reply" << endl;
+										// cerr << "ERR: Undefined message in reply" << endl;
+										handleErrFromServerUDP();
+
 										what_to_do = 2; // continue
 										break;
 									}
 
 									string reply_msg = string(start, end - start);
+
+									if (!inputProcess.isValidContent(reply_msg))
+									{
+										// cerr << "ERR: Invalid message" << endl;
+										// sendByeUDP(SentID);
+										handleErrFromServerUDP();
+
+										what_to_do = 2; // break
+										break;
+									}
 
 									cerr << "Failure: " << reply_msg << endl;
 
@@ -519,6 +561,12 @@ void TcpUdp::networkCommunicationThread()
 								}
 								else
 								{
+									if (!inputProcess.isValidDName(ServerName)){
+										handleErrFromServerUDP();
+										what_to_do = 2; // break
+										break;
+									}
+
 									cerr << "ERR FROM " << ServerName << ": "
 											 << "Unknown reply" << endl;
 									CurrentStatus = START;
@@ -549,6 +597,27 @@ void TcpUdp::networkCommunicationThread()
 								const char *nextEnd = std::strchr(nextStart, '\0');
 
 								string err_msg = string(nextStart, nextEnd - nextStart);
+
+								if (!inputProcess.isValidDName(ServerName))
+								{
+									// cerr << "ERR: Invalid server name" << endl;
+									// sendByeUDP(SentID);
+										handleErrFromServerUDP();
+
+									what_to_do = 2; // break
+									break;
+								}
+
+								if (!inputProcess.isValidContent(err_msg))
+								{
+									// cerr << "ERR: Invalid message" << endl;
+									// sendByeUDP(SentID);
+										handleErrFromServerUDP();
+
+									what_to_do = 2; // break
+									break;
+								}
+
 
 								cerr << "ERR FROM " << ServerName << ": " << err_msg << endl;
 
@@ -585,9 +654,12 @@ void TcpUdp::networkCommunicationThread()
 
 							if (end == nullptr)
 							{
-								cerr << "ERR: Server name is not found" << endl;
-								sendByeUDP(SentID);
+								// cerr << "ERR: Server name is not found" << endl;
+								// sendByeUDP(SentID);
+										handleErrFromServerUDP();
+
 								what_to_do = 2; // break
+								break;
 							}
 
 							ServerName = string(start, end - start);
@@ -595,6 +667,25 @@ void TcpUdp::networkCommunicationThread()
 							const char *nextEnd = std::strchr(nextStart, '\0');
 
 							string err_msg = string(nextStart, nextEnd - nextStart);
+							if (!inputProcess.isValidDName(ServerName))
+							{
+								// cerr << "ERR: Invalid server name" << endl;
+								// sendByeUDP(SentID);
+										handleErrFromServerUDP();
+
+								what_to_do = 2; // break
+								break;
+							}
+
+							if (!inputProcess.isValidContent(err_msg))
+							{
+								// cerr << "ERR: Invalid message" << endl;
+								// sendByeUDP(SentID);
+										handleErrFromServerUDP();
+
+								what_to_do = 2; // break
+								break;
+							}
 
 							cerr << "ERR FROM " << ServerName << ": " << err_msg << endl;
 
@@ -688,9 +779,21 @@ void TcpUdp::networkCommunicationThread()
 								}
 								// cerr << "ERR FROM " << DisplayName << ":: " << messageContent << endl;
 								string messageContent = inputProcess.extractMessageContent(respond);
+								if (!inputProcess.isValidContent(messageContent))
+								{
+									// cerr << "ERR: Invalid message" << endl;
+									sendMessageTCP("BYE\r\n");
+									break;
+								}
 
 								vector<string> vector = inputProcess.splitString(respond, ' ');
 								ServerName = vector[2];
+								if (!inputProcess.isValidDName(ServerName))
+								{
+									// cerr << "ERR: Invalid server name" << endl;
+									sendMessageTCP("BYE\r\n");
+									break;
+								}
 
 								cerr << "ERR FROM " << ServerName << ": " << messageContent << endl;
 								sendMessageTCP("BYE\r\n");
@@ -793,6 +896,20 @@ void TcpUdp::networkCommunicationThread()
 								const char *nextEnd = std::strchr(nextStart, '\0');
 
 								string err_msg = string(nextStart, nextEnd - nextStart);
+
+								if (!inputProcess.isValidDName(ServerName))
+								{
+									handleErrFromServerUDP();
+									is_break = true;
+									break;
+								}
+								if (!inputProcess.isValidContent(err_msg))
+								{
+									handleErrFromServerUDP();
+									is_break = true;
+									break;
+								}
+
 								cerr << "ERR FROM " << ServerName << ": " << err_msg << endl;
 
 								sendByeUDP(SentID);
@@ -846,6 +963,12 @@ void TcpUdp::networkCommunicationThread()
 						}
 						else
 						{
+
+							if (!inputProcess.isValidDName(ServerName)) {
+								handleErrFromServerUDP();
+								break;
+							}
+
 							cerr << "ERR FROM " << ServerName << ": "
 									 << "Unknown reply" << endl;
 							sendByeUDP(SentID);
@@ -866,6 +989,7 @@ void TcpUdp::networkCommunicationThread()
 
 						std::chrono::steady_clock::time_point start = std::chrono::steady_clock::now();
 						std::chrono::milliseconds timeout(UdpTimeout*10);
+						bool is_break = false;
 
 						while (respond == "") {
 							// responseBuffer.printBufferTCP();
@@ -879,6 +1003,14 @@ void TcpUdp::networkCommunicationThread()
 								// cerr << "Respond: " << respond << endl;
 								vector<string> vector = inputProcess.splitString(respond, ' ');
 								string messageContent = inputProcess.extractMessageContent(respond);
+
+								if (!inputProcess.isValidContent(messageContent))
+								{
+									// cerr << "ERR: Invalid message" << endl;
+									sendMessageTCP("BYE\r\n");
+									is_break = true;
+									break;
+								}
 
 								if (vector[1] == "OK")
 								{
@@ -924,6 +1056,7 @@ void TcpUdp::networkCommunicationThread()
 									std::this_thread::sleep_for(std::chrono::milliseconds(100));
 									if (std::chrono::steady_clock::now() - start > timeout) {
 										cerr << "ERR: Timeout of reply reached" << endl;
+										inputBuffer.setNetwork(false);
 										sendMessageTCP("BYE\r\n");
 										break;
 									}
@@ -935,17 +1068,33 @@ void TcpUdp::networkCommunicationThread()
 								vector<string> vector = inputProcess.splitString(respond, ' ');
 								ServerName = vector[2];
 
+								if (!inputProcess.isValidDName(ServerName))
+								{
+									// handleErrFromServerUDP();
+									sendMessageTCP("BYE\r\n");
+									is_break = true;
+									break;
+								}
+
+								if (!inputProcess.isValidContent(messageContent))
+								{
+									// handleErrFromServerUDP();
+									sendMessageTCP("BYE\r\n");
+									is_break = true;
+									break;
+								}
+
 								cerr << "ERR FROM " << ServerName << ": " << messageContent << endl;
 								sendMessageTCP("BYE\r\n");
 								break;
 							}
 
 						}
+
+						if (is_break)
+							break;
 					}
 				}
-			}
-			else
-			{
 			}
 		}
 		if (cin.eof())
@@ -972,6 +1121,24 @@ void TcpUdp::setReceived(bool received)
 	confirmReceived = received;
 }
 
+void TcpUdp::handleErrFromServerUDP() {
+	InputProcess inputProcess;
+	auto messageBytes = inputProcess.udp_construct_err(SentID, DisplayName);
+
+	const char *sequence = reinterpret_cast<const char *>(messageBytes.data());
+	sendMessageUDP(sequence, messageBytes.size());
+
+	cerr << "ERR: Invalid message received, exiting receiver thread" << endl;
+
+	unique_lock<mutex> lock(confirmMutex);
+	confirmCondition.wait(lock, [this]
+												{ return confirmReceived; });
+	setReceived(false);
+
+	sendByeUDP(SentID);
+	inputBuffer.setNetwork(false);
+}
+
 void TcpUdp::receiverThread()
 {
 	while (inputBuffer.getNetwork() == true)
@@ -991,21 +1158,22 @@ void TcpUdp::receiverThread()
 				short MsgID = message[1] << 8 | message[2];
 				sendConfirm(MsgID);
 
-				InputProcess inputProcess;
-				auto messageBytes = inputProcess.udp_construct_err(SentID, DisplayName);
+				handleErrFromServerUDP();
+				// InputProcess inputProcess;
+				// auto messageBytes = inputProcess.udp_construct_err(SentID, DisplayName);
 
-				const char *sequence = reinterpret_cast<const char *>(messageBytes.data());
-				sendMessageUDP(sequence, messageBytes.size());
+				// const char *sequence = reinterpret_cast<const char *>(messageBytes.data());
+				// sendMessageUDP(sequence, messageBytes.size());
 
-				cerr << "ERR: Invalid message received, exiting receiver thread" << endl;
+				// cerr << "ERR: Invalid message received, exiting receiver thread" << endl;
 
-				unique_lock<mutex> lock(confirmMutex);
-				confirmCondition.wait(lock, [this]
-															{ return confirmReceived; });
-				setReceived(false);
+				// unique_lock<mutex> lock(confirmMutex);
+				// confirmCondition.wait(lock, [this]
+				// 											{ return confirmReceived; });
+				// setReceived(false);
 
-				sendByeUDP(SentID);
-				inputBuffer.setNetwork(false);
+				// sendByeUDP(SentID);
+				// inputBuffer.setNetwork(false);
 				break;
 			}
 		}
@@ -1013,6 +1181,8 @@ void TcpUdp::receiverThread()
 		if (message != nullptr)
 		{
 			const unsigned char firstByte = message[0];
+			InputProcess inputProcess;
+
 			if (firstByte == 0x04)
 			{
 				short MsgID = message[1] << 8 | message[2];
@@ -1029,10 +1199,56 @@ void TcpUdp::receiverThread()
 				}
 
 				string ServerName = string(start, end - start);
+				// if (ServerName.length() > 20 && !inputProcess.isValidDName(ServerName))
+				if (!inputProcess.isValidDName(ServerName))
+				{
+					// cerr << "ERR: Server name is too long" << endl;
+
+					// auto messageBytes = inputProcess.udp_construct_err(SentID, DisplayName);
+
+					// const char *sequence = reinterpret_cast<const char *>(messageBytes.data());
+					// sendMessageUDP(sequence, messageBytes.size());
+
+					// cerr << "ERR: Invalid message received, exiting receiver thread" << endl;
+
+					// unique_lock<mutex> lock(confirmMutex);
+					// confirmCondition.wait(lock, [this]
+					// 											{ return confirmReceived; });
+					// setReceived(false);
+
+					// sendByeUDP(SentID);
+					// inputBuffer.setNetwork(false);
+					handleErrFromServerUDP();
+					break;
+					// sendByeUDP(SentID);
+					// break;
+				}
 				const char *nextStart = end + 1;
 				const char *nextEnd = std::strchr(nextStart, '\0');
 
 				string reply_msg = string(nextStart, nextEnd - nextStart);
+				// if (reply_msg.length() > 1400 && !inputProcess.isValidContent(reply_msg))
+				if (!inputProcess.isValidContent(reply_msg))
+				{
+					handleErrFromServerUDP();
+					// auto messageBytes = inputProcess.udp_construct_err(SentID, DisplayName);
+
+					// const char *sequence = reinterpret_cast<const char *>(messageBytes.data());
+					// sendMessageUDP(sequence, messageBytes.size());
+
+					// cerr << "ERR: Invalid message received, exiting receiver thread" << endl;
+
+					// unique_lock<mutex> lock(confirmMutex);
+					// confirmCondition.wait(lock, [this]
+					// 											{ return confirmReceived; });
+					// setReceived(false);
+
+					// sendByeUDP(SentID);
+					// inputBuffer.setNetwork(false);
+					break;
+					// sendByeUDP(SentID);
+					// break;
+				}
 
 				cout << ServerName << ": " << reply_msg << endl;
 				continue;
@@ -1174,7 +1390,8 @@ void TcpUdp::receiverThreadTCP()
 
 		if (vector[0] == "ERR" && inputProcess.parseERR(response))
 		{
-			cerr << "ERR FROM " << vector[2] << ": " << vector[4] << endl;
+			string messageContent = inputProcess.extractMessageContent(response);
+			cerr << "ERR FROM " << vector[2] << ": " << messageContent << endl;
 			sendMessageTCP("BYE\r\n");
 			inputBuffer.setNetwork(false);
 			// continue;

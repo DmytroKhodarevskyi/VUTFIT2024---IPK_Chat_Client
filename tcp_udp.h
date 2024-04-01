@@ -50,7 +50,8 @@ class TcpUdp {
         void sendConfirm(short ID);
         void sendByeUDP(short ID);
 
-
+        void handleErrFromServerUDP();
+        
         // void sendMessageUDP(const string& message);
 
         bool checkConfirmationUDP(short expectedID, const char* msg);

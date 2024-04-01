@@ -72,6 +72,8 @@ bool InputProcess::isValidContent(std::string &content)
 
     if (content.empty() || content.length() > 1400)
     {
+        cerr << "ERR: "
+             << "Message is too long" << endl;
         return false; // Message is too long
     }
 
@@ -79,6 +81,8 @@ bool InputProcess::isValidContent(std::string &content)
     {
         if (!((ch >= 33 && ch <= 126) || ch == 32))
         {
+            cerr << "ERR: "
+                 << "Character is not a VCHAR or SP" << endl;
             return false; // Character is not a VCHAR or SP
         }
     }
@@ -90,6 +94,8 @@ bool InputProcess::isValidDName(const std::string &dname)
 
     if (dname.empty() || dname.length() > 20)
     {
+        cerr << "ERR: "
+             << "Display name is too long" << endl;
         return false; // Message is too long
     }
 
@@ -97,6 +103,8 @@ bool InputProcess::isValidDName(const std::string &dname)
     {
         if (!((ch >= 33 && ch <= 126)))
         {
+            cerr << "ERR: "
+                 << "Character is not a VCHAR or SP" << endl;
             return false; // Character is not a VCHAR or SP
         }
     }
@@ -108,6 +116,8 @@ bool InputProcess::isValidSecret(const std::string &secret)
     // Check the length constraint first
     if (secret.empty() || secret.size() > 128)
     {
+        cerr << "ERR: "
+             << "Secret must be 128 characters or less" << endl;
         return false;
     }
 
@@ -116,6 +126,8 @@ bool InputProcess::isValidSecret(const std::string &secret)
     {
         if (!(std::isalpha(ch) || std::isdigit(ch) || ch == '-'))
         {
+            cerr << "ERR: "
+                 << "Character is not a letter, digit, or hyphen" << endl;
             return false; // Character does not meet criteria
         }
     }
@@ -138,6 +150,8 @@ bool InputProcess::isValidID(std::string id)
     // Check the length constraint first
     if (id.empty() || id.size() > 20)
     {
+        cerr << "ERR: "
+             << "ID must be 20 characters or less" << endl;
         return false;
     }
 
@@ -146,6 +160,8 @@ bool InputProcess::isValidID(std::string id)
     {
         if (!(std::isalpha(ch) || std::isdigit(ch) || ch == '-'))
         {
+            cerr << "ERR: "
+                 << "Character is not a letter, digit, or hyphen" << endl;
             return false; // Character does not meet criteria
         }
     }

@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
     }
 
     if (sock == -1) {
-        cerr << "Could not create socket\n";
+        cerr << "ERR: Could not create socket\n";
         return 1;
     }
 
@@ -78,9 +78,9 @@ int main(int argc, char** argv) {
         return 2;
     }
 
-    cerr << "Protocol: " << protocol << endl;
-    cerr << "Server IP: " << serverIP << endl;
-    cerr << "Server Port: " << serverPort << endl;
+    // cerr << "Protocol: " << protocol << endl;
+    // cerr << "Server IP: " << serverIP << endl;
+    // cerr << "Server Port: " << serverPort << endl;
 
     // Specify the server's address and port
     struct sockaddr_in server_address;
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
     }
 
     else {
-        cerr << "Invalid protocol specified." << endl;
+        cerr << "ERR: Invalid protocol specified." << endl;
         close(sock);
         return 5;
     }
