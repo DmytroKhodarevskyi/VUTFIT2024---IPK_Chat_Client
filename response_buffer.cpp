@@ -7,6 +7,41 @@
 //         messageBuffer.push_back(buffer); // Add the buffer to the vector
 // }
 
+void ResponseBuffer::addMessageToBuffer(string message) {
+    lock_guard<mutex> lock(bufferMutex); // Lock the buffer for thread safety
+
+    messageBufferTCP.push_back(message); // Add the message to the vector
+}
+
+void ResponseBuffer::printBufferTCP() const {
+    // lock_guard<mutex> lock(bufferMutex); // Ensure thread-safe access to the buffer
+
+    cerr << "----------------------" << endl; // Print a separator line
+    cerr << "Buffer contents:" << endl;
+    for (const auto& message : messageBufferTCP) {
+        cerr << message << endl;
+    }
+    cerr << "----------------------" << endl; // Print a separator line
+}
+
+string ResponseBuffer::getMessageFromBufferTCP(const string& type) {
+    lock_guard<mutex> lock(bufferMutex); // Lock the buffer for thread safety
+
+    for (auto it = messageBufferTCP.begin(); it != messageBufferTCP.end(); ++it) {
+        istringstream iss(*it);
+        string firstWord;
+        iss >> firstWord; // Extract the first word from the message
+
+        if (firstWord == type) {
+            string message = *it; // Copy the matching message
+            messageBufferTCP.erase(it); // Remove the message from the buffer
+            return message; // Return the entire message that starts with the given type (word)
+        }
+    }
+
+    return ""; // Return an empty string if no matching message is found
+}
+
 void ResponseBuffer::addMessageToBuffer(const char* message, size_t length) {
     MessageData msgData;
     msgData.message = message; // Store the pointer directly

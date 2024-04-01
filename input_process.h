@@ -10,6 +10,8 @@
 #include <bitset>
 #include <atomic>
 
+#include <regex>
+#include <algorithm>
 
 #include <thread>
 #include <mutex>
@@ -49,8 +51,15 @@ public:
     Command parseLine(string line);
     bool parseRespondAuth(string respond);
     bool parseRespondOpen(string respond);
+    bool parseMSG(string respond);
+    bool parseERR(string respond);
+
+    string toUpperCase(const std::string& str);
+    string replaceWordIgnoreCase(std::string text, const std::string& from, const std::string& to);
+    string upperTCP(string str);
 
     vector<string> splitString(const string& str, char delimiter);
+    string extractMessageContent(const std::string& text);
     string stringToBinary(const std::string& s);
     string intToBinary(short number);
 

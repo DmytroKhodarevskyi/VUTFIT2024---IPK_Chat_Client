@@ -15,7 +15,7 @@
 #include <tuple>
 
 #include <memory> // For std::unique_ptr
-
+#include <vector>
 
 #include <mutex>
 #include <condition_variable>
@@ -70,6 +70,7 @@ class TcpUdp {
         // void confirmThread();
         // void receiverThread(InputBuffer& inputBuffer, ResponseBuffer& responseBuffer);
         void receiverThread();
+        void receiverThreadTCP();
         void signalHandlerThread(const sigset_t& signals);
 
         void printMessageAsHex(const char* message, size_t length);

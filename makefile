@@ -3,7 +3,7 @@ CXX=g++
 CXXFLAGS=-g -Wall -Wextra -std=c++20
 
 # Build settings
-TARGET=ipk24-chat.exe
+TARGET=ipk24chat-client.exe
 SOURCES=$(wildcard *.cpp)
 OBJECTS=$(SOURCES:.cpp=.o)
 

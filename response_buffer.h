@@ -17,6 +17,9 @@ public:
     // ... (other class members and methods)
     // void addMessageToBuffer(MemoryManager &memoryManager, const char* message, size_t length);
     void addMessageToBuffer(const char* message, size_t length);
+    void addMessageToBuffer(string message);
+
+    string getMessageFromBufferTCP(const string& type);
    
     // Function to search for and retrieve a message from the buffer
     // char* getMessageFromBuffer(const char* searchMessage, size_t length);
@@ -31,6 +34,9 @@ public:
      bool removeMessageFromBuffer(const char* searchMessage, size_t length);
     
     void printBuffer() const;
+    
+    void printBufferTCP() const;
+
 
     bool isBufferEmpty() const;
 
@@ -44,5 +50,7 @@ private:
     } MessageData;
 
     std::vector<MessageData> messageBuffer; // Buffer of pointers to byte messages
+    
+    std::vector<string> messageBufferTCP;
     // ... (other private members)
 };

@@ -1,6 +1,41 @@
 #include "input_process.h"
 #include <iomanip>
 
+string InputProcess::toUpperCase(const std::string &str)
+{
+    std::string upperStr = str;
+    std::transform(upperStr.begin(), upperStr.end(), upperStr.begin(),
+                   [](unsigned char c)
+                   { return std::toupper(c); });
+    return upperStr;
+}
+
+string InputProcess::replaceWordIgnoreCase(std::string text, const std::string &from, const std::string &to)
+{
+    size_t startPos = 0;
+    std::string lowerText = toUpperCase(text);
+    std::string lowerFrom = toUpperCase(from);
+    while ((startPos = lowerText.find(lowerFrom, startPos)) != std::string::npos)
+    {
+        text.replace(startPos, from.length(), to);
+        startPos += to.length(); // In case 'to' contains 'from', like replacing 'i' with 'I'.
+    }
+    return text;
+}
+
+string InputProcess::upperTCP(string text)
+{
+    const std::vector<std::string> keywords = {
+        "ERR ", " FROM ", "REPLY ", " IS ", " OK ", " NOK ",
+        "AUTH ", " AS ", " USING ", "JOIN ", "MSG ", "BYE"};
+
+    for (const auto &keyword : keywords)
+    {
+        text = replaceWordIgnoreCase(text, keyword, toUpperCase(keyword));
+    }
+    return text;
+}
+
 vector<string> InputProcess::splitString(const string &str, char delimiter)
 {
     vector<string> tokens;
@@ -11,6 +46,22 @@ vector<string> InputProcess::splitString(const string &str, char delimiter)
         tokens.push_back(token);
     }
     return tokens;
+}
+
+string InputProcess::extractMessageContent(const std::string &text)
+{
+    std::string marker = " IS ";
+    size_t startPos = text.rfind(marker);
+    if (startPos != std::string::npos)
+    {
+        startPos += marker.length(); // Move past the marker
+        size_t endPos = text.find("\r\n", startPos);
+        if (endPos != std::string::npos)
+        {
+            return text.substr(startPos, endPos - startPos);
+        }
+    }
+    return ""; // Return an empty string if the pattern is not found
 }
 
 bool InputProcess::isValidContent(std::string &content)
@@ -103,11 +154,15 @@ bool InputProcess::isValidID(std::string id)
 
 bool InputProcess::parseRespondAuth(string respond)
 {
+    // cerr << "RESPOND: " << respond << endl;
+    if (respond == "")
+        return false;
+
     vector<string> vector = splitString(respond, ' ');
 
     if (vector[0] == "REPLY")
     {
-        if (vector[1] == "OK")
+        if (vector[1] == "OK" || vector[1] == "NOK")
         {
             if (vector[2] == "IS")
             {
@@ -118,6 +173,7 @@ bool InputProcess::parseRespondAuth(string respond)
             }
         }
     }
+
     return false;
 }
 
@@ -140,6 +196,52 @@ bool InputProcess::parseRespondOpen(string respond)
     }
 
     if (vector[0] == "MSG")
+    {
+        if (vector[1] == "FROM")
+        {
+            if (isValidDName(vector[2]))
+            {
+                if (vector[3] == "IS")
+                {
+                    if (isValidContent(vector[4]))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool InputProcess::parseMSG(string respond)
+{
+    vector<string> vector = splitString(respond, ' ');
+
+    if (vector[0] == "MSG")
+    {
+        if (vector[1] == "FROM")
+        {
+            if (isValidDName(vector[2]))
+            {
+                if (vector[3] == "IS")
+                {
+                    if (isValidContent(vector[4]))
+                    {
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    return false;
+}
+
+bool InputProcess::parseERR(string respond)
+{
+    vector<string> vector = splitString(respond, ' ');
+
+    if (vector[0] == "ERR")
     {
         if (vector[1] == "FROM")
         {
@@ -488,11 +590,13 @@ bool InputBuffer::isEmpty()
     return buffer.empty();
 }
 
-void InputBuffer:: setNetwork(bool active) {
+void InputBuffer::setNetwork(bool active)
+{
     std::lock_guard<std::mutex> guard(network_mutex);
     is_network_active = active;
 }
 
-bool InputBuffer::getNetwork() {
+bool InputBuffer::getNetwork()
+{
     return is_network_active;
 }
