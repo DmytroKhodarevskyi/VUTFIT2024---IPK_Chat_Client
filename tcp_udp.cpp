@@ -1,7 +1,9 @@
 #include "tcp_udp.h"
 
+// Constructor
 TcpUdp::TcpUdp(sockaddr_in server_address, int sock, unsigned short UdpTimeout, unsigned short UdpRetransmissions)
 		: server_address(server_address), sock(sock), UdpTimeout(UdpTimeout), UdpRetransmissions(UdpRetransmissions) {}
+
 
 void TcpUdp::connectToServer()
 {
@@ -31,6 +33,7 @@ void TcpUdp::connectToServer()
 	}
 }
 
+
 void TcpUdp::sendMessageTCP(const string &message)
 {
 	const char *message_cstr = message.c_str();
@@ -48,6 +51,7 @@ void TcpUdp::sendMessageTCP(const string &message)
 		exit(3);
 	}
 }
+
 
 void TcpUdp::printMessageAsHex(const char *message, size_t length)
 {
@@ -291,18 +295,6 @@ void TcpUdp::stdinReaderThread()
 	}
 }
 
-bool TcpUdp::checkConfirmationUDP(short expectedID, const char *msg)
-{
-	InputProcess inputProcess;
-	unsigned char *expID_bytes = inputProcess.shortToBytes(expectedID).data();
-
-	if (msg[0] == expID_bytes[0] && msg[1] == expID_bytes[1])
-	{
-		return true;
-	}
-
-	return false;
-}
 
 void TcpUdp::networkCommunicationThread()
 {
@@ -1180,6 +1172,10 @@ void TcpUdp::receiverThread()
 
 		if (message != nullptr)
 		{
+
+			if (CurrentStatus != START) {
+
+
 			const unsigned char firstByte = message[0];
 			InputProcess inputProcess;
 
@@ -1250,10 +1246,11 @@ void TcpUdp::receiverThread()
 					// break;
 				}
 
-				cout << ServerName << ": " << reply_msg << endl;
-				continue;
+					cout << ServerName << ": " << reply_msg << endl;
+					continue;
+				}
+				}
 			}
-		}
 
 		if (err == 2)
 		{
@@ -1290,20 +1287,6 @@ void TcpUdp::printBuffer(InputBuffer &inputBuffer)
 	}
 }
 
-void TcpUdp::setSocketTimeout(int sock, int timeoutMs)
-{
-	struct timeval timeout;
-	timeout.tv_sec = timeoutMs / 1000;
-	timeout.tv_usec = (timeoutMs % 1000) * 1000;
-
-	if (setsockopt(sock, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(timeout)) < 0)
-	{
-		cerr << "ERR: Error setting socket timeout." << endl;
-		close(sock);
-		exit(1);
-		// Handle error, maybe return or exit
-	}
-}
 
 void TcpUdp::signalHandlerThread(const sigset_t &signals)
 {
@@ -1381,11 +1364,13 @@ void TcpUdp::receiverThreadTCP()
 
 		vector<string> vector = inputProcess.splitString(response, ' ');
 
-		if (vector[0] == "MSG" && inputProcess.parseMSG(response))
-		{
-			string messageContent = inputProcess.extractMessageContent(response);
-			cout << vector[2] << ": " << messageContent << endl;
-			continue;
+		if (CurrentStatus != START) {
+			if (vector[0] == "MSG" && inputProcess.parseMSG(response))
+			{
+				string messageContent = inputProcess.extractMessageContent(response);
+				cout << vector[2] << ": " << messageContent << endl;
+				continue;
+			}
 		}
 
 		if (vector[0] == "ERR" && inputProcess.parseERR(response))

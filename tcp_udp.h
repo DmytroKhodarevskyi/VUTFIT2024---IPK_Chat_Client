@@ -39,53 +39,63 @@ using namespace std;
 
 class TcpUdp {
     public:   
-        // Tcp(const string& serverIP, unsigned short serverPort, int sock);
         TcpUdp(sockaddr_in server_address, int sock, unsigned short UdpTimeout, unsigned short UdpRetransmissions);
         void Input(int Protocol);
 
+        /**
+         * @brief This function will connect you to the server when the TCP protocol is specified.
+         */
         void connectToServer();
 
+        /**
+         * @brief This function will send a message for TCP protocol.
+         * @param message The message to be sent to the server.
+         */
         void sendMessageTCP(const string& message);
+
+        /**
+         * @brief This function will send a message for UDP protocol (and receive confirm).
+         * @param message The message to be sent to the server.
+         * @param length The length of the message to be sent to the server.
+         */
         void sendMessageUDP(const char* message, size_t length);
+        /**
+         * @brief Sends confirmation to server.
+         * @param ID Message ID.
+         */
         void sendConfirm(short ID);
+        /**
+         * @brief Sends bye to server.
+         * @param ID Message ID.
+         */
         void sendByeUDP(short ID);
 
+        /**
+         * @brief This function will send ERR to server and gracefully end the program.
+         */
         void handleErrFromServerUDP();
         
-        // void sendMessageUDP(const string& message);
-
-        bool checkConfirmationUDP(short expectedID, const char* msg);
-
-        void setSocketTimeout(int sock, int timeoutMs);
-
         string receiveMessageTCP();
         char* receiveMessageUDP(int *err, int *bytes);
 
         void closeConnection();
 
-        // void networkCommunicationThread(InputBuffer& inputBuffer, ResponseBuffer& responseBuffer);
         void networkCommunicationThread();
-        // void stdinReaderThread(InputBuffer& inputBuffer);
         void stdinReaderThread();
         void confirmThread(short expectedID, const char* message, size_t length);
-        // void confirmThread();
-        // void receiverThread(InputBuffer& inputBuffer, ResponseBuffer& responseBuffer);
         void receiverThread();
         void receiverThreadTCP();
         void signalHandlerThread(const sigset_t& signals);
 
+        /**
+         * @brief This function is used for debug, you can print out the hex representation of a message.
+         * @param message The message you want to print.
+         * @param length The length of the message you want to print
+         */
         void printMessageAsHex(const char* message, size_t length);
         void printBuffer(InputBuffer& inputBuffer);
 
         void setReceived(bool received);
-
-        // static TcpUdp* instance;
-
-        // TcpUdp() {
-        //     instance = this;
-        // }
-
-        // static void signalHandler(int signum);
 
     private:
         mutex sendingMutex;
@@ -95,25 +105,18 @@ class TcpUdp {
 
         mutex confirmReceivedMutex;
 
-        // condition_variable networkThread;
-        // mutex networkMutex;
-        // bool networkThreadReady = false;
-
         bool confirmReceived = false;
 
         MemoryManager memoryManager;
         ResponseBuffer responseBuffer;
         InputBuffer inputBuffer;
         struct sockaddr_in server_address;
-        // string serverIP;
-        // unsigned short serverPort;
         int sock;
 
         unsigned short UdpTimeout;
         unsigned short UdpRetransmissions;
 
         string ERR_ = "ERR: ";
-        
 
         enum Status {
             START,
