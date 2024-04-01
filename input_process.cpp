@@ -440,7 +440,6 @@ vector<unsigned char> InputProcess::udp_construct_auth(Command message, short ID
     messageBytes.push_back(0x02); // 0x02
     vector<unsigned char> idBytes = shortToBytes(ID);
     messageBytes.insert(messageBytes.end(), idBytes.begin(), idBytes.end());
-    // messageBytes.push_back(0x00); // 0x00
 
     vector<unsigned char> usernameBytes = stringToBytes(message.username);
     messageBytes.insert(messageBytes.end(), usernameBytes.begin(), usernameBytes.end());
@@ -454,10 +453,6 @@ vector<unsigned char> InputProcess::udp_construct_auth(Command message, short ID
     messageBytes.insert(messageBytes.end(), displayNameBytes.begin(), displayNameBytes.end());
     messageBytes.push_back(0x00); // 0x00
 
-    // for(auto byte : messageBytes) {
-    //     std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
-    // }
-
     return messageBytes;
 }
 
@@ -469,7 +464,6 @@ vector<unsigned char> InputProcess::udp_construct_join(Command message, short ID
 
     vector<unsigned char> idBytes = shortToBytes(ID);
     messageBytes.insert(messageBytes.end(), idBytes.begin(), idBytes.end());
-    // messageBytes.push_back(0x00); // 0x00
 
     vector<unsigned char> usernameBytes = stringToBytes(message.channel);
     messageBytes.insert(messageBytes.end(), usernameBytes.begin(), usernameBytes.end());
@@ -483,10 +477,6 @@ vector<unsigned char> InputProcess::udp_construct_join(Command message, short ID
 
     messageBytes.push_back(0x00); // 0x00
 
-    // for(auto byte : messageBytes) {
-    //     std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
-    // }
-
     return messageBytes;
 }
 
@@ -498,7 +488,6 @@ vector<unsigned char> InputProcess::udp_construct_msg(Command message, short ID)
 
     vector<unsigned char> idBytes = shortToBytes(ID);
     messageBytes.insert(messageBytes.end(), idBytes.begin(), idBytes.end());
-    // messageBytes.push_back(0x00); // 0x00
 
     vector<unsigned char> usernameBytes = stringToBytes(message.displayName);
     messageBytes.insert(messageBytes.end(), usernameBytes.begin(), usernameBytes.end());
@@ -509,10 +498,6 @@ vector<unsigned char> InputProcess::udp_construct_msg(Command message, short ID)
     messageBytes.insert(messageBytes.end(), displayNameBytes.begin(), displayNameBytes.end());
 
     messageBytes.push_back(0x00); // 0x00
-
-    // for(auto byte : messageBytes) {
-    //     std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
-    // }
 
     return messageBytes;
 }
@@ -525,10 +510,6 @@ vector<unsigned char> InputProcess::udp_construct_confirm(short ID)
     vector<unsigned char> idBytes = shortToBytes(ID);
     messageBytes.insert(messageBytes.end(), idBytes.begin(), idBytes.end());
 
-    // for(auto byte : messageBytes) {
-    //     std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
-    // }
-
     return messageBytes;
 }
 
@@ -539,10 +520,6 @@ vector<unsigned char> InputProcess::udp_construct_bye(short ID)
     messageBytes.push_back(0xFF); // 0x03
     vector<unsigned char> idBytes = shortToBytes(ID);
     messageBytes.insert(messageBytes.end(), idBytes.begin(), idBytes.end());
-
-    // for(auto byte : messageBytes) {
-    //     std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
-    // }
 
     return messageBytes;
 }
@@ -566,10 +543,6 @@ vector<unsigned char> InputProcess::udp_construct_err(short ID, string DisplayNa
 
     messageBytes.push_back(0x00); // 0x00
 
-    // for(auto byte : messageBytes) {
-    //     std::cout << std::hex << std::setw(2) << std::setfill('0') << static_cast<int>(byte) << " ";
-    // }
-
     return messageBytes;
 }
 
@@ -578,15 +551,6 @@ void InputBuffer::addLine(const std::string &line)
     std::lock_guard<std::mutex> guard(mutex);
     buffer.push_back(line);
 }
-
-// void InputBuffer::processAndClear() {
-//         std::lock_guard<std::mutex> guard(mutex);
-//         for (const auto& line : buffer) {
-//             // Process each line here
-//             // std::cout << "Processing buffered line: " << line << std::endl;
-//         }
-//         buffer.clear();
-// }
 
 std::optional<std::string> InputBuffer::retrieveLine()
 {

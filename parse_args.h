@@ -2,7 +2,6 @@
 #define PARSE_H
 
 #include <string>
-// #include <optional>
 
 class Parse {
 public:
@@ -21,9 +20,7 @@ private:
     int argc;
     char** argv;
 
-    // std::optional<std::string> protocol;
     std::string protocol;
-    // std::optional<std::string> serverIP;
     std::string serverIP;
     unsigned short serverPort;
     unsigned short udpTimeout;

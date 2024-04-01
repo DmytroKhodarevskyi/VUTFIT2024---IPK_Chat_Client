@@ -7,11 +7,15 @@
 #include <netdb.h>
 
 #include "parse_args.h"
-#include "tcp.h"
 #include "tcp_udp.h"
 
 using namespace std;
 
+/**
+ * @brief Function to convert a hostname to an IP address.
+ * @param hostname The hostname to be converted to an IP address.
+ * @return The IP address of the hostname.
+ */
 string hostnameToIP(const string& hostname) {
     struct addrinfo hints, *res, *p;
     int status;
@@ -48,6 +52,8 @@ string hostnameToIP(const string& hostname) {
 
 int main(int argc, char** argv) {
 
+    //Parsing arguments
+
     Parse parse = Parse(argc, argv);
     parse.parseArguments();
 
@@ -78,11 +84,6 @@ int main(int argc, char** argv) {
         return 2;
     }
 
-    // cerr << "Protocol: " << protocol << endl;
-    // cerr << "Server IP: " << serverIP << endl;
-    // cerr << "Server Port: " << serverPort << endl;
-
-    // Specify the server's address and port
     struct sockaddr_in server_address;
 
     memset(&server_address, 0, sizeof(server_address));
@@ -98,17 +99,12 @@ int main(int argc, char** argv) {
 
     if (protocol == "tcp") {
 
-        // Tcp tcp = Tcp(server_address, sock);
         TcpUdp tcp = TcpUdp(server_address, sock, udpTimeout, udpRetransmissions);
         tcp.Input(1);
 
     }
 
     else if (protocol == "udp") {
-        // cerr << "UDP not implemented yet." << endl;
-        // close(sock);
-        // return 4;
-        // cerr << "HUH?\n";
         //FIXME: Handle err
         if (bind(sock, (struct sockaddr *)&server_address, sizeof(server_address)) < 0) {
             // Handle error 
@@ -124,19 +120,6 @@ int main(int argc, char** argv) {
         close(sock);
         return 5;
     }
-
-    // // Connect to the server
-    // if (connect(sock, (struct sockaddr*)&server_address, sizeof(server_address)) == -1) {
-    //     cerr << "Could not connect to server\n";
-    //     return 2;
-    // }
-
-    // // Send a message to the server
-    // const char* message = "Hello, Server!\n\n";
-    // if (send(sock, message, strlen(message), 0) == -1) {
-    //     cerr << "Could not send message\n";
-    //     return 3;
-    // }
 
     // Close the socket
     close(sock);

@@ -5,7 +5,6 @@
 #include <cstdlib>
 
 Parse::Parse(int argc, char** argv) 
-    // : argc(argc), argv(argv), serverPort(4567), udpTimeout(250), udpRetransmissions(3) {}
     : argc(argc), argv(argv), serverIP(""), protocol(""), serverPort(4567), udpTimeout(250), udpRetransmissions(3) {}
 
 void Parse::parseArguments() {

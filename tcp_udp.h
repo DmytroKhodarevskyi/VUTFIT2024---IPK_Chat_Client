@@ -28,7 +28,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h>
 
-#include "memory_manager.h"
 #include "input_process.h"
 #include "response_buffer.h"
 
@@ -42,6 +41,7 @@ class TcpUdp {
         TcpUdp(sockaddr_in server_address, int sock, unsigned short UdpTimeout, unsigned short UdpRetransmissions);
         void Input(int Protocol);
 
+    private:
         /**
          * @brief Connect you to the server when the TCP protocol is specified.
          * (connection parameters are specified in constructor)
@@ -132,7 +132,6 @@ class TcpUdp {
          */
         void setReceived(bool received);
 
-    private:
 
         /**
          * Mutex for sending messages.
@@ -160,8 +159,6 @@ class TcpUdp {
          * Receival flag
         */
         bool confirmReceived = false;
-
-        MemoryManager memoryManager;
 
         /**
          * Buffer for received messages.
